@@ -218,6 +218,10 @@ function cancelarEdicion() {
     portadaFile.required = true;
     tituloForm.textContent = 'Publicar una recomendación';
     mostrarMensaje(mensaje, '', 'ok');
+    // Limpiar la selección de archivo al cancelar
+    if (portadaFile) {
+        portadaFile.value = '';
+    }
 }
 
 async function eliminarJuego(id) {
@@ -286,12 +290,16 @@ formRecomendacion.addEventListener('submit', async (evento) => {
             titulo: titulo.value.trim(),
             genero: genero.value,
             puntuacion: Number(puntuacion.value),
-            url_portada: portadaUrl,
             resenia: resenia.value.trim(),
             plataforma: plataforma.value,
             anio: anio.value || null,
             terminado: terminado.checked
         };
+        // Solo incluir url_portada si se subió una nueva imagen O si es un juego nuevo (no edición)
+        // Si es edición y no hay nueva imagen, se omite url_portada para conservar la existente
+        if (portadaUrl || !juegoId.value) {
+            datos.url_portada = portadaUrl;
+        }
         if (juegoId.value) {
             const { data, error } = await editarJuegoBD(juegoId.value, datos);
             if (error) {
@@ -318,6 +326,9 @@ formRecomendacion.addEventListener('submit', async (evento) => {
         mostrarMensaje(mensaje, 'Error al guardar: ' + error.message, 'error');
     }
 });
+
+// Event listener para el botón Cancelar
+document.getElementById('btn-cancelar-edicion').addEventListener('click', cancelarEdicion);
 
 verificarSesion((usuario) => {
     actualizarUI(usuario);
